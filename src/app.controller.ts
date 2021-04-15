@@ -14,7 +14,6 @@ export class AppController {
    * Receives messages published on 'doorstatus' and saves them
    * as logs in the door audits collection.
    * @param status Payload coming in the message
-   * @param context RabbitMQ Context containing metadata
    */
   @MessagePattern('doorstatus')
   public async handleTimeRequest(@Payload() status: string) {
@@ -31,7 +30,16 @@ export class AppController {
    * a message on the 'triggeropendoor' queue to open the door
    */
   @MessagePattern('opendoor')
-  public async handle() {
+  public async handleOpenDoor() {
     this.triggerOpenDoorClient.emit<any>('triggeropendoor', '1');
+  }
+
+  /**
+   * Receives messages published on 'closedoor' and publishes
+   * a message on the 'triggeropendoor' queue to open the door
+   */
+  @MessagePattern('closedoor')
+  public async handleCloseDoor() {
+    this.triggerOpenDoorClient.emit<any>('triggeropendoor', '0');
   }
 }
