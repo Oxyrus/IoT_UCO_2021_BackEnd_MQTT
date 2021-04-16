@@ -1,5 +1,5 @@
 import { Controller, Inject } from '@nestjs/common';
-import { ClientProxy, Ctx, MessagePattern, Payload, RmqContext } from '@nestjs/microservices';
+import { ClientProxy, MessagePattern, Payload } from '@nestjs/microservices';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { DoorAudit, DoorAuditDocument } from './schemas/door-audit.schema';
@@ -13,11 +13,14 @@ export class AppController {
   /**
    * Receives messages published on 'doorstatus' and saves them
    * as logs in the door audits collection.
-   * @param data Payload coming in the message
-   * @param context RabbitMQ Context containing metadata
+   * @param status Payload coming in the message
    */
   @MessagePattern('doorstatus')
-  public async handleTimeRequest(@Payload() data: any, @Ctx() context: RmqContext) {
+  public async handleTimeRequest(@Payload() status: string) {
+    const data = {
+      device: 'door',
+      isOpen: status.toLowerCase() === 'abierto' ? true : false
+    };
     const audit = new this.auditModel(data);
     await audit.save();
   }
@@ -27,9 +30,16 @@ export class AppController {
    * a message on the 'triggeropendoor' queue to open the door
    */
   @MessagePattern('opendoor')
-  public async handle() {
-    this.triggerOpenDoorClient.emit<any>('triggeropendoor', {
-      'message': 'open the door'
-    });
+  public async handleOpenDoor() {
+    this.triggerOpenDoorClient.emit<any>('triggeropendoor', '1');
+  }
+
+  /**
+   * Receives messages published on 'closedoor' and publishes
+   * a message on the 'triggeropendoor' queue to open the door
+   */
+  @MessagePattern('closedoor')
+  public async handleCloseDoor() {
+    this.triggerOpenDoorClient.emit<any>('triggeropendoor', '0');
   }
 }

@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
-import { mongoDbConfig, triggerOpenDoorBroker } from './config';
+import { mongoDbConfig, mqttConfig } from './config';
 import { DoorAudit, DoorAuditSchema } from './schemas/door-audit.schema';
 
 @Module({
@@ -22,10 +22,11 @@ import { DoorAudit, DoorAuditSchema } from './schemas/door-audit.schema';
     ClientsModule.register([
       {
         name: 'TRIGGER_OPEN_DOOR_SERVICE',
-        transport: Transport.RMQ,
+        transport: Transport.MQTT,
         options: {
-          urls: triggerOpenDoorBroker.urls,
-          queue: triggerOpenDoorBroker.queue,
+          username: mqttConfig.username,
+          password: mqttConfig.password,
+          url: mqttConfig.url,
         },
       },
     ]),
