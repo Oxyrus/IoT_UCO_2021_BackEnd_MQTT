@@ -3,12 +3,20 @@ import { ClientProxy, MessagePattern, Payload } from '@nestjs/microservices';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { DoorAudit, DoorAuditDocument } from './schemas/door-audit.schema';
+import {
+  WeightMeasurement,
+  WeightMeasurementDocument,
+} from './schemas/weight-measurement.schema';
 
 @Controller()
 export class AppController {
   constructor(
-    @Inject('TRIGGER_OPEN_DOOR_SERVICE') private triggerOpenDoorClient: ClientProxy,
-    @InjectModel(DoorAudit.name) private auditModel: Model<DoorAuditDocument>) {}
+    @Inject('TRIGGER_OPEN_DOOR_SERVICE')
+    private triggerOpenDoorClient: ClientProxy,
+    @InjectModel(DoorAudit.name) private auditModel: Model<DoorAuditDocument>,
+    @InjectModel(WeightMeasurement.name)
+    private weightMeasurementModel: Model<WeightMeasurementDocument>,
+  ) {}
 
   /**
    * Receives messages published on 'doorstatus' and saves them
@@ -19,10 +27,27 @@ export class AppController {
   public async handleTimeRequest(@Payload() status: string) {
     const data = {
       device: 'door',
-      isOpen: status.toLowerCase() === 'abierto' ? true : false
+      isOpen: status.toLowerCase() === 'abierto' ? true : false,
     };
     const audit = new this.auditModel(data);
     await audit.save();
+  }
+
+  /**
+   * Add new handler to save the weight measurement
+   * from the devices
+   * @param data
+   */
+  @MessagePattern('weightmeasurement')
+  public async handleWeightMeasurement(
+    @Payload() data: { item: string; weight: number },
+  ) {
+    const measurement = new this.weightMeasurementModel({
+      item: data.item,
+      weightInGrams: data.weight,
+    });
+
+    await measurement.save();
   }
 
   /**
