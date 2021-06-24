@@ -10,6 +10,9 @@ export class WeightMeasurement {
 
   @Prop({ required: true })
   weightInGrams: number;
+
+  @Prop({ required: true })
+  datetime: string;
 }
 
 export const WeightMeasurementSchema = SchemaFactory.createForClass(

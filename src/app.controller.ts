@@ -40,11 +40,12 @@ export class AppController {
    */
   @MessagePattern('weightmeasurement')
   public async handleWeightMeasurement(
-    @Payload() data: { item: string; weight: number },
+    @Payload() data: { item: string; weight: number; datetime: string },
   ) {
     const measurement = new this.weightMeasurementModel({
       item: data.item,
       weightInGrams: data.weight,
+      datetime: data.datetime,
     });
 
     await measurement.save();
@@ -66,5 +67,41 @@ export class AppController {
   @MessagePattern('closedoor')
   public async handleCloseDoor() {
     this.triggerOpenDoorClient.emit<any>('triggeropendoor', '0');
+  }
+
+  /**
+   * Receives messages published on 'openbox1' and publishes
+   * a message on the 'triggeropenbox1' queue to open the box
+   */
+  @MessagePattern('openbox1')
+  public async handleOpenBox1() {
+    this.triggerOpenDoorClient.emit<any>('triggeropenbox1', '1');
+  }
+
+  /**
+   * Receives messages published on 'openbox1' and publishes
+   * a message on the 'triggeropenbox1' queue to close the box
+   */
+  @MessagePattern('closebox1')
+  public async handleCloseBox1() {
+    this.triggerOpenDoorClient.emit<any>('triggeropenbox1', '0');
+  }
+
+  /**
+   * Receives messages published on 'openbox2' and publishes
+   * a message on the 'triggeropenbox2' queue to open the box
+   */
+  @MessagePattern('openbox2')
+  public async handleOpenBox2() {
+    this.triggerOpenDoorClient.emit<any>('triggeropenbox2', '1');
+  }
+
+  /**
+   * Receives messages published on 'openbox2' and publishes
+   * a message on the 'triggeropenbox2' queue to close the box
+   */
+  @MessagePattern('closebox2')
+  public async handleCloseBox2() {
+    this.triggerOpenDoorClient.emit<any>('triggeropenbox2', '0');
   }
 }
